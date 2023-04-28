@@ -1,0 +1,77 @@
+#include <stdio.h>
+#include <string.h>
+#include <ctype.h>
+#define MAX_PRODUCTIONS 100
+#define MAX_PROD_SIZE 50
+
+char productions[MAX_PRODUCTIONS][MAX_PROD_SIZE];
+char non_terminals[MAX_PRODUCTIONS];
+int num_productions = 0;
+int num_non_terminals = 0;
+
+void eliminate_left_factoring(char non_terminal) {
+    int i, j, k;
+    int num_common_prefixes = 0;
+    int max_prefix_len = MAX_PROD_SIZE;
+    char common_prefix[MAX_PROD_SIZE];
+    for (i = 0; i < num_productions; i++) {
+        if (productions[i][0] == non_terminal) {
+           
+            for (j = i + 1; j < num_productions; j++) {
+                if (productions[j][0] == non_terminal) {
+                    int prefix_len = 0;
+                    while (productions[i][prefix_len] == productions[j][prefix_len]) {
+                        prefix_len++;
+                    }
+                    if (prefix_len > 0 && prefix_len < max_prefix_len) {
+                        num_common_prefixes = 1;
+                        max_prefix_len = prefix_len;
+                        strncpy(common_prefix, productions[i], prefix_len);
+                        common_prefix[prefix_len] = '\0';
+                    } else if (prefix_len > 0 && prefix_len == max_prefix_len &&
+                               strncmp(common_prefix, productions[i], prefix_len) == 0) {
+                        num_common_prefixes++;
+                    }
+                }
+            }
+            if (num_common_prefixes > 0) {
+                // Add new non-terminal
+                char new_non_terminal = non_terminal + 1;
+                non_terminals[num_non_terminals++] = new_non_terminal;
+                
+                sprintf(productions[num_productions++], "%s%c'", common_prefix, new_non_terminal);
+                for (k = 0; k < num_productions; k++) {
+                    if (productions[k][0] == non_terminal && strncmp(common_prefix, productions[k], max_prefix_len) != 0) {
+                        sprintf(productions[num_productions++], "%s%c'", productions[k] + max_prefix_len, new_non_terminal);
+                    }
+                }
+               
+                for (k = 0; k < num_productions; k++) {
+                    if (productions[k][0] == non_terminal && strncmp(common_prefix, productions[k], max_prefix_len) == 0) {
+                        sprintf(productions[k], "%s%c'", common_prefix, new_non_terminal);
+                    }
+                }
+                
+                eliminate_left_factoring(new_non_terminal);
+                return;
+            }
+        }
+    }
+}
+
+int main() {
+    char input[MAX_PROD_SIZE];
+    printf("Enter the CFG:\n");
+    while (fgets(input, MAX_PROD_SIZE, stdin) != NULL) {
+        
+        input[strcspn(input, "\n")] = '\0';
+        
+        strcpy(productions[num_productions++], input);
+        
+        if (isupper(input[0]) && input[1] == '-') {
+            non_terminals[num_non_terminals++] = input[0];
+        }
+    }
+   
+    int i;
+   
