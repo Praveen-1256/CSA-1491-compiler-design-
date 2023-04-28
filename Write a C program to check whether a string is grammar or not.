@@ -1,0 +1,25 @@
+#include <stdio.h>
+#include <ctype.h>
+#include <stdbool.h>
+
+bool is_grammar(char* str) {
+    while (*str) {
+        if (!isupper(*str) && *str != ' ') {
+            return false;
+        }
+        str++;
+    }
+    return true;
+}
+
+int main() {
+    char str[100];
+    printf("Enter a string: ");
+    fgets(str, 100, stdin);
+    if (is_grammar(str)) {
+        printf("The string follows the grammar.\n");
+    } else {
+        printf("The string does not follow the grammar.\n");
+    }
+    return 0;
+}
