@@ -1,0 +1,36 @@
+import re
+keywords = ['if', 'else', 'while', 'for']
+operators = ['+', '-', '*', '/', '=', '==', '!=', '<', '>', '<=', '>=']
+identifiers = []
+literals = []
+keyword_pattern = '|'.join(keywords)
+operator_pattern = '|'.join([re.escape(op) for op in operators])
+identifier_pattern = r'[a-zA-Z_]\w*'
+literal_pattern = r'\d+(\.\d+)?'
+whitespace_and_comments_pattern = r'(\/\/[^\n]*|\/\*.*?\*\/|\s)+'
+def tokenize(code):
+    tokens = []
+    while code:
+        match = re.match(whitespace_and_comments_pattern, code)
+        if match:
+            code = code[len(match.group(0)):]
+            continue
+        match = re.match(f'({keyword_pattern})|({operator_pattern})|({identifier_pattern})|({literal_pattern})', code)
+        if match:
+            value = match.group(0)
+            code = code[len(value):]
+            if match.group(1):
+                tokens.append(('keyword', value))
+            elif match.group(2):
+                tokens.append(('operator', value))
+            elif match.group(3):
+                if value not in identifiers:
+                    identifiers.append(value)
+                tokens.append(('identifier', value))
+            elif match.group(4):
+                literals.append(value)
+                tokens.append(('literal', value))
+        else:
+            raise ValueError(f'Invalid token: {code[0]}')
+    
+    return tokens
